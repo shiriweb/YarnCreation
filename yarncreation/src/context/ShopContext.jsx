@@ -1,73 +1,97 @@
 import React, { createContext, useEffect, useState } from "react";
 import { products } from "../assets/assets";
+import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 
 export const ShopContext = createContext(null);
 
 const ShopContextProvider = ({ children }) => {
+  const [activeStatus, setActiveStatus] = useState(false);
+  const [userStatus, setUserStatus] = useState({ id: null, username: null });
+
   const currency = "Rs";
   const delivery_charge = 100;
-  const [cart, setCart] = useState([]);
-  const [invoice, setInvoice] = useState({count: 0, subTotal:0 });
+  const [carts, setCarts] = useState(getFromLocalStorage("carts") || {});
+  const [invoice, setInvoice] = useState({ count: 0, subTotal: 0 });
+
   const addCart = (product) => {
-    console.log(product);
-    setCart((oldCart) => {
-      let previous = [...oldCart];
-      if (previous.length < 1) {
-        previous.push({ ...product, quantity: 1 });
+    if (!userStatus.id) return; // Prevent modification if user is not logged in
+    const userId = userStatus.id;
+    setCarts((prevCarts) => {
+      const userCart = prevCarts[userId] || [];
+      let updatedCart = [...userCart];
+      const isProduct = updatedCart.find((prod) => prod.id === product.id);
+      if (!isProduct) {
+        updatedCart.push({ ...product, quantity: 1 });
       } else {
-        const isProduct = previous.find((prod) => prod.id === product.id);
-        if (!isProduct) {
-          previous.push({ ...product, quantity: 1 });
-        } else {
-          previous = previous.map((prod) => {
-            return prod.id === isProduct.id
-              ? { ...isProduct, quantity: isProduct.quantity + 1 }
-              : prod;
-          });
-        }
+        updatedCart = updatedCart.map((prod) =>
+          prod.id === isProduct.id
+            ? { ...isProduct, quantity: isProduct.quantity + 1 }
+            : prod
+        );
       }
-      return previous;
+      const newCarts = { ...prevCarts, [userId]: updatedCart };
+      saveToLocalStorage("carts", newCarts);
+      return newCarts;
     });
   };
-  const removeCart = (product) => {
-    setCart((oldCart) => {
-      const previous = [...oldCart];
-      const isProduct = previous.find(prod => prod.id === product.id); // Fix typo: 'prodiuct' -> 'product'
-      if (isProduct) {
-        const index = previous.indexOf(isProduct);
-        previous.splice(index, 1);
-      }
-      return previous;
+
+  const removeCart = (userId, product) => {
+    if (!activeStatus) {
+      alert("Please login to remove from cart");
+      return false;
+    }
+    setCarts((prevCarts) => {
+      const userCart = prevCarts[userId] || [];
+      const updatedCart = userCart.filter((item) => item.id !== product.id);
+      const newCarts = { ...prevCarts, [userId]: updatedCart };
+      saveToLocalStorage("carts", newCarts);
+      return newCarts;
     });
-  };   
-     
+  };
 
   const setInvoiceData = () => {
-    setInvoice(previous=> {
-      let newInvoice = { ...previous, count: 0, subTotal: 0 };
-
-      cart.forEach((product) => {
-        newInvoice.count += product.quantity;
-        newInvoice.subTotal += product.quantity * product.price;
-      });
-      return newInvoice;
+    if (!userStatus.id) return;
+    const userCart = carts[userStatus.id] || [];
+    let newInvoice = { count: 0, subTotal: 0 };
+    userCart.forEach((product) => {
+      newInvoice.count += product.quantity;
+      newInvoice.subTotal += product.quantity * product.price;
     });
+    setInvoice(newInvoice);
   };
+
   useEffect(() => {
-    setInvoiceData();
-  }, [cart]);
+    if (userStatus.id) {
+      setInvoiceData();
+    }
+  }, [carts, userStatus.id]);
+
+  useEffect(() => {
+    const savedCarts = getFromLocalStorage("carts") || {};
+    setCarts(savedCarts);
+  }, []);
+
   return (
     <ShopContext.Provider
       value={{
-        products: products,
-        cart: cart,
-        currency: currency,
-        delivery_charge: delivery_charge,
-        addCart,invoice, setInvoice, setCart,removeCart,
+        activeStatus,
+        setActiveStatus,
+        userStatus,
+        setUserStatus,
+        products,
+        carts,
+        currency,
+        delivery_charge,
+        addCart,
+        invoice,
+        setInvoiceData,
+        setCarts,
+        removeCart,
       }}
     >
       {children}
     </ShopContext.Provider>
   );
 };
+
 export default ShopContextProvider;

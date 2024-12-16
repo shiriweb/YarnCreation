@@ -1,22 +1,51 @@
-import React, { useContext } from "react";
-import { ShopContext } from "../../context/ShopContext";
+import React, { useContext, useEffect } from "react";
+import { ShopContext } from "../../context/ShopContext.jsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { Link, useNavigate } from "react-router-dom";
 
 const Cart = () => {
-  const { cart, invoice, removeCart, setCart, setInvoice } =
-    useContext(ShopContext); // Destructure removeCart from context
+  const { userStatus,activeStatus, carts, invoice, removeCart, setCarts, setInvoiceData } =
+    useContext(ShopContext);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (userStatus && userStatus.id) {
+      setInvoiceData();
+    }
+  }, [carts, userStatus.id]);
+
+  if (!userStatus || !userStatus.id) {
+    return (
+      <div className="flex items-center text-2xl justify-center p-4 gap-2 text-gray-600">
+        <span>Please log in to view your cart</span>
+        <Link className="text-blue-600" to={"/login"}>
+          Log In
+        </Link>
+      </div>
+    );
+  }
+
+  const userId = userStatus.id;
+  const cart = carts[userId] || [];
+
+  const checkUser = (product) => {
+    if (userStatus) {
+      removeCart(userId, product);
+    } else {
+      alert("Please Login to remove from cart");
+    }
+  };
+
   const placeOrder = () => {
-    setCart([]);
-    setInvoice({ count: 0, subTOtal: 0 });
+    setCarts((prevCarts) => ({ ...prevCarts, [userId]: [] }));
+    setInvoiceData();
     navigate("/success");
   };
+
   return (
     <div className="p-4 bg-[#f2f2f2]">
-      {cart.length > 0 ? (
+      {activeStatus ? (
         cart.map((product) => {
           return (
             <div
@@ -41,7 +70,7 @@ const Cart = () => {
                 <FontAwesomeIcon
                   icon={faTimes}
                   className="text-red-600 text-2xl cursor-pointer hover:text-red-800"
-                  onClick={() => removeCart(product)}
+                  onClick={() => checkUser(product)}
                 />
               </div>
             </div>
@@ -49,15 +78,15 @@ const Cart = () => {
         })
       ) : (
         <div className="flex items-center text-2xl justify-center p-4 gap-2 text-gray-600">
-          <span>Your Cart is Empty</span>
+          <span>Log in to view your cart</span>
           <FontAwesomeIcon icon={faShoppingCart} />
-          <Link className="text-blue-600" to={"/"}>
+          {/* <Link className="text-blue-600" to={"/"}>
             Add Products
-          </Link>
+          </Link> */}
         </div>
       )}
 
-      {cart.length > 0 && (
+      {activeStatus && (
         <div className="flex flex-col items-baseline ml-[830px] gap-3 py-4 mt-6 border-t border-gray-200">
           <p className="font-bold text-lg ">
             Subtotal ({invoice.count} {invoice.count > 1 ? "items" : "item"}):

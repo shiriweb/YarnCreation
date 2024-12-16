@@ -7,7 +7,11 @@ import { faUser, faHeart, faShoppingCart, faSearch } from "@fortawesome/free-sol
 
 const Navbar = () => {
   const [menu, setMenu] = useState("home");
-  const { invoice } = useContext(ShopContext); // Only import once
+  const {invoices, activeStatus, setActiveStatus} = useContext(ShopContext);
+  
+  const logout = ()=>{
+    setActiveStatus(false);
+  }
 
   return (
     <div className="flex h-15 w-full bg-[#f5f5f5] items-center">
@@ -55,19 +59,17 @@ const Navbar = () => {
         </Link>
       </div>
       <div className="flex ml-[350px] mr-20 text-lg text-black space-x-2">
-        <Link to="/login">
-          <button className="w-24 border border-gray-400 text-sm p-2 rounded-lg shadow hover:bg-[#FF5733] hover:text-white hover:border-collapse">
-            Login
-          </button>
-        </Link>
+        
+
+        {activeStatus ? <button className="w-24 border border-gray-400 text-sm p-2 rounded-lg shadow hover:bg-[#FF5733] hover:text-white hover:border-collapse" onClick={()=>{logout()}}>Log Out</button> : <Link to="/login"><button className="w-24 border border-gray-400 text-sm p-2 rounded-lg shadow hover:bg-[#FF5733] hover:text-white hover:border-collapse" > Log In </button> </Link> }
 
 
         <Link to={'/cart'}>
         <div className="relative" >
           <FontAwesomeIcon className="" icon={faShoppingCart} />
-          {invoice?.count > 0 && (
+          {invoices?.count > 0 && (
             <div className="absolute top-2 right-2 w-4 h-4 text-xs bg-blue-700 text-white flex items-center justify-center rounded-full">
-              {invoice?.count}
+              {invoices?.count}
             </div>
           )}
         </div>

@@ -14,15 +14,16 @@ const Collection = () => {
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [showProducts, setShowProducts] = useState([]);
 
-  useEffect(() => {
-    if (selectedCategory) {
-      setShowProducts(products);
-    } else {
-      setShowProducts(
-        products.filter((product) => product.category === selectedCategory)
-      );
-    }
-  }, [selectedCategory, products]);
+  // useEffect(() => {
+  //   if (selectedCategory) {
+  //     setShowProducts(products);
+  //   } else {
+  //     setShowProducts(
+  //       products.filter((product) => product.category === selectedCategory)
+  //     );
+  //     showProducts();
+  //   }
+  // }, [selectedCategory, products]);
 
   return (
     <div className="bg-[#f5f5f5] m-0 p-0 w-full h-[430px] ">

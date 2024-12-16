@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import image from "../../assets/images/homeeee.jpg";
 import { Link } from "react-router-dom";
+import { ShopContext } from "../../context/ShopContext";
 const FirstDiv = () => {
+  
+  const {activeStatus} = useContext(ShopContext);
+
   return (
     <>
       <div className="bg-[#f5f5f5] max-h-[450px] max-w-[1100px] flex relative">
@@ -12,7 +16,8 @@ const FirstDiv = () => {
           </div>
           <div className="absolute top-60 left-[430px]">
           <Link to="/products"><button className="border border-white text-sm font-bold rounded-md text-black p-3 mx-2 hover:bg-black hover:text-white">Explore Products</button></Link>
-          <Link to="/login"><button className="border border-white text-sm font-bold rounded-md w-28 text-white p-3 hover:bg-black hover:text-white">Login</button></Link>
+             {activeStatus ? '' :  <Link to="/login"><button className="border border-white text-sm font-bold rounded-md w-28 text-white p-3 hover:bg-black hover:text-white">Login</button></Link>
+      }
           </div>
         </div>
       </div>

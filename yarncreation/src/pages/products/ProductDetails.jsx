@@ -5,7 +5,15 @@ import Footer from "../../components/Footer";
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const { products, addCart } = useContext(ShopContext);
+  const {activeStatus, products, addCart } = useContext(ShopContext);
+
+  const check = () =>{
+    if(!activeStatus){
+      alert("Please Login to add to cart");
+    }else{
+      addCart(product);
+    }
+  }
 
   const product = products.find((item) => item.id === parseInt(id));
 
@@ -31,7 +39,7 @@ const ProductDetails = () => {
         </p>
         <button
           className="bg-black w-28 h-10 text-white rounded-lg"
-          onClick={() => addCart(product)}
+          onClick={() => check()}
         >
           Add to Cart
         </button>
